@@ -1,0 +1,20 @@
+[
+  {
+    "id": "1",
+    "username": "anna",
+    "reserveNumber": "1111",
+    "bookId": "1",
+    "copies": 2,
+    "createDate": "2022-11-04T07:41:55.062804900Z",
+    "lastUpdateDate": "2022-11-04T07:41:55.062804900Z"
+  },
+  {
+    "id": "2",
+    "username": "inna",
+    "reserveNumber": "2222",
+    "bookId": "2",
+    "copies": 3,
+    "createDate": "2022-11-04T08:55:59.051703800Z",
+    "lastUpdateDate": "2022-11-04T08:55:59.051703800Z"
+  }
+]

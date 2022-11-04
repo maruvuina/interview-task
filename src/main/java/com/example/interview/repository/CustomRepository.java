@@ -1,12 +1,12 @@
 package com.example.interview.repository;
 
-import java.util.List;
-import java.util.Optional;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 public interface CustomRepository<T> {
 
-    List<T> findAll();
+    Flux<T> findAll();
 
-    Optional<T> findById(String id);
+    Mono<T> findById(String id);
 
 }

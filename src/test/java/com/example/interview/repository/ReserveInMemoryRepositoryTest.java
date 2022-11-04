@@ -1,26 +1,43 @@
 package com.example.interview.repository;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
 import java.util.Random;
 import java.util.UUID;
 
 import com.example.interview.model.Reservation;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 class ReserveInMemoryRepositoryTest {
 
+    @Mock
     private ReserveInMemoryRepository reserveInMemoryRepository;
+
+    private Reservation reservation;
+
+    private Flux<Reservation> reservationFlux;
 
     @BeforeEach
     void setUp() {
-        reserveInMemoryRepository = new ReserveInMemoryRepository();
-        List<Reservation> reservations = new ArrayList<>();
-        Reservation reservation = Reservation.builder()
+        reservation = Reservation.builder()
+                .id("1")
+                .reserveNumber("4444")
+                .username("Anna")
+                .bookId("3")
+                .copies(10)
+                .build();
+        Reservation reservation1 = Reservation.builder()
                 .id("1111")
                 .reserveNumber(getRandomReserveNumber())
                 .username("Inna")
@@ -34,36 +51,99 @@ class ReserveInMemoryRepositoryTest {
                 .bookId(getRandomId())
                 .copies(14)
                 .build();
-        reservations.add(reservation);
-        reservations.add(reservation2);
-        reserveInMemoryRepository.setReservations(reservations);
+        reservationFlux = Flux.just(reservation, reservation1, reservation2);
     }
 
     @Test
     void findAll() {
-        assertEquals(2, reserveInMemoryRepository.findAll().size());
+        // given
+        when(reserveInMemoryRepository.findAll()).thenReturn(reservationFlux);
+
+        // when
+        Flux<Reservation> actual = reserveInMemoryRepository.findAll();
+
+        // then
+        StepVerifier
+                .create(actual)
+                .expectSubscription()
+                .expectNext(reservation)
+                .expectNextCount(2)
+                .expectComplete()
+                .verify();
     }
 
     @Test
     void save() {
-        Reservation reservation = Reservation.builder()
+        // given
+        Reservation expected = Reservation.builder()
                 .id("3333")
                 .reserveNumber(getRandomReserveNumber())
                 .username("Naruto")
                 .bookId(getRandomId())
                 .copies(22)
                 .build();
-        Reservation actual = reserveInMemoryRepository.save(reservation);
-        assertEquals("Naruto", actual.getUsername());
-        assertEquals(22, actual.getCopies());
+        when(reserveInMemoryRepository.save(expected)).thenReturn(Mono.just(expected));
+
+        // when
+        Mono<Reservation> actual = reserveInMemoryRepository.save(expected);
+
+        // then
+        StepVerifier
+                .create(actual)
+                .expectSubscription()
+                .expectNext(expected)
+                .expectComplete()
+                .verify();
     }
 
     @Test
     void findById() {
-        String id = "1111";
-        Optional<Reservation> actual = reserveInMemoryRepository.findById(id);
-        assertEquals(id, actual.get().getId());
+        // given
+        String id = "1";
+        when(reserveInMemoryRepository.findById(id)).thenReturn(Mono.just(reservation));
+
+        // when
+        Mono<Reservation> actual = reserveInMemoryRepository.findById(id);
+
+        // then
+        StepVerifier
+                .create(actual)
+                .expectSubscription()
+                .expectNext(reservation)
+                .expectComplete()
+                .verify();
     }
+
+    @Test
+    void update() {
+        // given
+        String bookId = "1";
+        Integer copies = 20;
+        Reservation reservationToUpdate = Reservation.builder()
+                .id("1")
+                .reserveNumber("4444")
+                .username("Anna")
+                .bookId(bookId)
+                .copies(copies)
+                .build();
+        when(reserveInMemoryRepository.update(reservationToUpdate)).thenReturn(Mono.just(reservationToUpdate));
+
+        // when
+        Mono<Reservation> actual = reserveInMemoryRepository.update(reservationToUpdate);
+
+        // then
+        StepVerifier
+                .create(actual)
+                .expectSubscription()
+                .assertNext(expectedReservation -> {
+                    assertNotNull(expectedReservation);
+                    assertThat(expectedReservation.getBookId(), is(bookId));
+                    assertThat(expectedReservation.getCopies(), is(copies));
+                })
+                .expectComplete()
+                .verify();
+    }
+
 
     private String getRandomId() {
         return UUID.randomUUID().toString();

@@ -1,8 +1,5 @@
 package com.example.interview.controller;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
 import com.example.interview.dto.BookDto;
 import com.example.interview.mapper.BookMapper;
 import com.example.interview.service.BookService;
@@ -13,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import reactor.core.publisher.Flux;
 
 @RestController
 @RequestMapping("api/v1/books")
@@ -25,9 +23,7 @@ public class BookController {
 
     @GetMapping
     @ResponseStatus(code = HttpStatus.OK)
-    public List<BookDto> getAll(@RequestParam(defaultValue = "false", required = false) boolean available) {
-        return bookService.getAll(available).stream()
-                .map(bookMapper::toDto)
-                .collect(Collectors.toList());
+    public Flux<BookDto> getAll(@RequestParam(defaultValue = "false", required = false) boolean available) {
+        return bookService.getAll(available).map(bookMapper::toDto);
     }
 }

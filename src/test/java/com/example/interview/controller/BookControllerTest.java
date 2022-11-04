@@ -1,48 +1,63 @@
 package com.example.interview.controller;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 
-import com.example.interview.dto.BookDto;
-import com.example.interview.mapper.BookMapper;
 import com.example.interview.model.Book;
 import com.example.interview.service.BookService;
+import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.web.reactive.server.WebTestClient;
+import reactor.core.publisher.Flux;
 
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest({BookController.class, BookMapper.class, BookDto.class })
+@ActiveProfiles("test")
+@AutoConfigureWebTestClient
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class BookControllerTest {
 
     @Autowired
-    private MockMvc mockMvc;
+    private WebTestClient webTestClient;
 
     @MockBean
     private BookService bookService;
 
     @Test
-    void getAll() throws Exception {
-        List<Book> books = new ArrayList<>(
-                Arrays.asList(new Book("1", "Harry Potter and the Philosopher's Stone",
+    void getAll() throws IOException {
+        // given
+        Flux<Book> books = Flux.just(
+                new Book("1", "Harry Potter and the Philosopher's Stone",
                                 "Joanne Rowling", 50),
                         new Book("2", "The Lord of the Rings: The Fellowship of the Ring",
                                 "John Ronald Reuel Tolkien", 10),
-                        new Book("3", "Epam handbook", "Epam", 1)));
+                        new Book("3", "Epam handbook", "Epam", 1));
 
         when(bookService.getAll(false)).thenReturn(books);
 
-        mockMvc.perform(get("/api/v1/books"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.size()").value(books.size()))
-                .andDo(print());
+        final var expectedJson = IOUtils
+                .toString(Objects.requireNonNull(this.getClass()
+                        .getClassLoader()
+                        .getResourceAsStream("books.json")), StandardCharsets.UTF_8);
+
+        // when
+        webTestClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/api/v1/books")
+                        .build())
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                // then
+                .expectStatus()
+                .isOk()
+                .expectBody()
+                .json(expectedJson);
     }
 }
