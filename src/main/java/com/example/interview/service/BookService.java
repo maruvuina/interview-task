@@ -19,7 +19,7 @@ public class BookService {
     private final BookJsonRepository repository;
 
     public List<Book> getAll(boolean available) {
-        Predicate<Book> bookPredicate = available ? book -> book.getCopies() > 0 : book -> false;
+        Predicate<Book> bookPredicate = available ? book -> book.getCopies() > 0 : book -> true;
         return repository.findAll()
                 .stream()
                 .filter(bookPredicate)

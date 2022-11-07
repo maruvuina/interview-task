@@ -16,5 +16,11 @@
     "name": "Epam handbook",
     "author" : "Epam",
     "copies": 1
+  },
+  {
+    "id": "4",
+    "name": "Naruto",
+    "author" : "Masashi Kishimoto",
+    "copies": 0
   }
 ]

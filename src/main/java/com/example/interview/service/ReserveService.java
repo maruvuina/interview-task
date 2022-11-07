@@ -93,6 +93,12 @@ public class ReserveService {
 
     public ReserveResponse update(String id, ReserveUpdate reserveUpdate) {
         Reservation reservation = repository.findById(id).orElseThrow();
+        Book book = bookService.getById(reserveUpdate.getBookId());
+        if (book.getCopies() < reserveUpdate.getCopies()) {
+            log.error("Not enough copies of book '{}' in database. Available {}", book.getName(), book.getCopies());
+            throw new BookException("Not enough copies of book '" + book.getName() +
+                    "' in database. Available '" + book.getCopies() + "'");
+        }
         reservation.setBookId(reserveUpdate.getBookId());
         reservation.setCopies(reserveUpdate.getCopies());
         reservation.setLastUpdateDate(Instant.now());
