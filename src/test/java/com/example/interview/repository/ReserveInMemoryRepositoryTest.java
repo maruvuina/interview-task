@@ -10,7 +10,7 @@ import com.example.interview.model.Reservation;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class ReserveInMemoryRepositoryTest {
 
@@ -46,6 +46,7 @@ class ReserveInMemoryRepositoryTest {
 
     @Test
     void save() {
+        // given
         Reservation reservation = Reservation.builder()
                 .id("3333")
                 .reserveNumber(getRandomReserveNumber())
@@ -53,15 +54,23 @@ class ReserveInMemoryRepositoryTest {
                 .bookId(getRandomId())
                 .copies(22)
                 .build();
+        // when
         Reservation actual = reserveInMemoryRepository.save(reservation);
+
+        // then
         assertEquals("Naruto", actual.getUsername());
         assertEquals(22, actual.getCopies());
     }
 
     @Test
     void findById() {
+        // given
         String id = "1111";
+
+        // when
         Optional<Reservation> actual = reserveInMemoryRepository.findById(id);
+
+        // then
         assertEquals(id, actual.get().getId());
     }
 
