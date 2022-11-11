@@ -4,7 +4,7 @@ import java.util.function.Predicate;
 
 import com.example.interview.exception.BookException;
 import com.example.interview.model.Book;
-import com.example.interview.repository.BookJsonRepository;
+import com.example.interview.repository.BookReactiveMongoRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -16,7 +16,7 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class BookService {
 
-    private final BookJsonRepository repository;
+    private final BookReactiveMongoRepository repository;
 
     public Flux<Book> getAll(boolean available) {
         Predicate<Book> bookPredicate = available ? book -> book.getCopies() > 0 : book -> true;
